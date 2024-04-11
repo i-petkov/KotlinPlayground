@@ -22,8 +22,8 @@ class Character(
      * char.rollAttack(::disadvantage)
      * char.rollAttack(::superAdvantage)
      */
-    fun rollAttack(advantage: (() -> Int) -> Int): Int {
-        return advantage { roll(20) } + stats.modifier(attackStat, ::modifierScaling) + proficiencyScaling(level)
+    fun attackRoll(advantage: (() -> Int) -> Int): Int {
+        return advantage { roll(20) } + stats.modifier(attackStat) + proficiencyScaling(level)
     }
 
     fun rollDamage(weapon: Weapon): Int {
@@ -51,7 +51,7 @@ class Character(
         //  * Mele vs Ranged Weapon (STR vs DEX)
         //  * Finesse Weapon (STR vs DEX)
         //  * Warlock Hexblade (CHAR vs STR vs DEX)
-        return damage + stats.modifier(attackStat, ::modifierScaling)
+        return damage + stats.modifier(attackStat)
     }
 
     private fun (()-> Int).applyMod(mod: Mod): () -> Int = when(mod) {

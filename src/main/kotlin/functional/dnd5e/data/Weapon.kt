@@ -13,12 +13,14 @@ class Weapon(
     val hasSecondWeapon: Boolean = false,
     val hasProficientcy: Boolean = true,
     val isMele: Boolean = true,
-    val isFinesse: Boolean = false
+    val isFinesse: Boolean = false,
+    val isLight: Boolean = false
 ) {
     companion object {
         val GREAT_SWORD = Weapon(weaponDie = 2 d 6, isHeavy = true, isTwoHanded = true)
         val WARHAMMER = Weapon(weaponDie = 1 d 8)
         val WARHAMMER_VERSATILE = Weapon(weaponDie = 1 d 10, isTwoHanded = true)
+        val UNARMED = Weapon(weaponDie = 1 d 4, isTwoHanded = false)
     }
 
     fun canApply(mod: Mod): Boolean = when(mod) {

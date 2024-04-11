@@ -1,7 +1,6 @@
 package functional.dnd5e.data
 
 import functional.dnd5e.advantage
-import functional.dnd5e.data.*
 import functional.dnd5e.disadvantage
 import functional.dnd5e.noAdvantage
 import functional.dnd5e.superAdvantage
@@ -25,10 +24,10 @@ class CharacterTest {
     @Test
     fun rollAttack() {
         (character as Character).let { chrctr ->
-            val normal = Array(trials) { chrctr.rollAttack(::noAdvantage) }.average()
-            val advantage = Array(trials) { chrctr.rollAttack(::advantage) }.average()
-            val disadvantage = Array(trials) { chrctr.rollAttack(::disadvantage) }.average()
-            val superAdvantage = Array(trials) { chrctr.rollAttack(::superAdvantage) }.average()
+            val normal = Array(trials) { chrctr.attackRoll(::noAdvantage) }.average()
+            val advantage = Array(trials) { chrctr.attackRoll(::advantage) }.average()
+            val disadvantage = Array(trials) { chrctr.attackRoll(::disadvantage) }.average()
+            val superAdvantage = Array(trials) { chrctr.attackRoll(::superAdvantage) }.average()
 
             println("normal: $normal")
             println("advantage: $advantage")

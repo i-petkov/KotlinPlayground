@@ -1,5 +1,7 @@
 package functional.dnd5e.data
 
+import functional.dnd5e.modifierScaling
+
 data class DieRoll(val rollNumber:Int, val rollSize:Int)
 
 enum class Feat {
@@ -35,14 +37,13 @@ data class Stats(
     val intellect: Int = 10,
     val charisma: Int = 10
 ) {
-    fun modifier(attackStat: Stat, scale: (Int) -> Int): Int {
+    fun modifier(attackStat: Stat): Int {
         return when(attackStat) {
-            Stat.STR -> scale(str)
-            Stat.DEX -> scale(dex)
-            Stat.CONSTITUTION -> scale(const)
-            Stat.INTELLECT -> scale(intellect)
-            Stat.CHARISMA -> scale(charisma)
+            Stat.STR -> modifierScaling(str)
+            Stat.DEX -> modifierScaling(dex)
+            Stat.CONSTITUTION -> modifierScaling(const)
+            Stat.INTELLECT -> modifierScaling(intellect)
+            Stat.CHARISMA -> modifierScaling(charisma)
         }
     }
-
 }

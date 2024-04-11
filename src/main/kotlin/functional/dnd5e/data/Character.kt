@@ -1,6 +1,5 @@
 package functional.dnd5e.data
 
-import dnd5e.*
 import functional.dnd5e.greatWeaponsFighting
 import functional.dnd5e.modifierScaling
 import functional.dnd5e.proficiencyScaling

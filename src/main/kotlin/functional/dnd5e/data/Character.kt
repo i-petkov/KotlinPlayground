@@ -1,78 +1,44 @@
 package functional.dnd5e.data
 
-import functional.dnd5e.greatWeaponsFighting
-import functional.dnd5e.modifierScaling
-import functional.dnd5e.proficiencyScaling
-import functional.dnd5e.roll
-import kotlin.math.max
+import functional.dnd5e.*
 
 class Character(
     var stats: Stats,
-    var level: Int,
-    val attackStat: Stat
+    var level: Int
 ) {
     val feats: HashSet<Feat> = HashSet()
     val fightingStyles: HashSet<FightingStyles> = HashSet()
 
-    /**
-     * val char = Character(Stats(), 1, Stat.STR)
-     *
-     * char.rollAttack(::noAdvantage)
-     * char.rollAttack(::advantage)
-     * char.rollAttack(::disadvantage)
-     * char.rollAttack(::superAdvantage)
-     */
-    fun attackRoll(advantage: (() -> Int) -> Int): Int {
-        return advantage { roll(20) } + stats.modifier(attackStat) + proficiencyScaling(level)
+    fun equip(mainHand: AttackArm, offHand: Arm = NotEquipped): AttackState {
+        return AttackState(this, mainHand, offHand)
     }
 
-    fun rollDamage(weapon: Weapon): Int {
-        var attack = { roll(weapon.weaponDie.rollSize) }
-        // mods apply on each die roll (applies to attack)
-        // * GWF
-        // * etc..
-        if (fightingStyles.contains(FightingStyles.GREAT_WEAPON_FIGHTING) && weapon.canApply(Mod.GWF))
-            attack = attack.applyMod(Mod.GWF)
+    fun proficiencyModifier() = proficiencyScaling(level)
 
-        var damage = attack.repeat(weapon.weaponDie.rollNumber)()
-        // flat bonuses apply only once per attack (applies to damage)
-        // * DUELING
-        // * GWM
-        // * etc..
-        if (fightingStyles.contains(FightingStyles.DUELING) && weapon.canApply(Flat.DUELING))
-            damage = damage.applyFlat(Flat.DUELING)
-        if (feats.contains(Feat.GREAT_WEAPON_MASTER) && weapon.canApply(Flat.GWM))
-            damage = damage.applyFlat(Flat.GWM)
-        if (feats.contains(Feat.SHARPSHOOTER) && weapon.canApply(Flat.SHARPSHOOTER))
-            damage = damage.applyFlat(Flat.SHARPSHOOTER)
+    fun abilityModifier(arms: AttackArm) = stats.modifier(arms.attackingStat)
 
-        // TODO assuming provided attack stat
-        //  eventually should provide calculation for attack stat base of:
-        //  * Mele vs Ranged Weapon (STR vs DEX)
-        //  * Finesse Weapon (STR vs DEX)
-        //  * Warlock Hexblade (CHAR vs STR vs DEX)
-        return damage + stats.modifier(attackStat)
-    }
+    fun mapEffects(arms: AttackArm): List<Effect> {
+        val addAbilityModifier = arms.isMainHand || fightingStyles.contains(FightingStyles.TWO_WEAPON_FIGHTING)
 
-    private fun (()-> Int).applyMod(mod: Mod): () -> Int = when(mod) {
-        Mod.GWF -> { { greatWeaponsFighting(this) } }
-    }
+        val featEffects: List<Effect> = feats.map {
+            when(it) {
+                Feat.GREAT_WEAPON_MASTER -> GreatWeaponsMaster
+                Feat.SHARPSHOOTER -> Sharpshooter
+            }
+        }
 
-    private fun Int.applyFlat(modifier: Flat) = when(modifier) {
-        Flat.DUELING -> this + 2
-        Flat.GWM -> this + 10
-        Flat.SHARPSHOOTER -> this + 10
-    }
+        val fightingStylesEffects: List<Effect> = fightingStyles.mapNotNull {
+            when(it) {
+                FightingStyles.GREAT_WEAPON_FIGHTING -> GreatWeaponFighting
+                FightingStyles.DUELING -> Dueling
+                FightingStyles.TWO_WEAPON_FIGHTING -> null
+            }
+        }
 
-    private fun (() -> Int).repeat(times: Int): () -> Int = when(times) {
-        1 -> this
-        2 -> { { this() + this() } }
-        3 -> { { this() + this() + this() } }
-        4 -> { { this() + this() + this() + this() } }
-        5 -> { { this() + this() + this() + this() + this() } }
-        6 -> { { this() + this() + this() + this() + this() + this() } }
-        7 -> { { this() + this() + this() + this() + this() + this() + this() } }
-        8 -> { { this() + this() + this() + this() + this() + this() + this() + this() } }
-        else -> throw UnsupportedOperationException("Not implemented")
+        return if (addAbilityModifier) {
+            featEffects + fightingStylesEffects + AbilityModifier { it() + abilityModifier(arms) }
+        } else {
+            featEffects + fightingStylesEffects
+        }
     }
 }

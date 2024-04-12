@@ -8,6 +8,8 @@ import kotlin.random.Random
 val random = Random(System.currentTimeMillis())
 
 fun roll(n: Int) = random.nextInt(n) + 1
+
+fun attackRoll(): () -> Int = { roll(20) }
 fun noAdvantage(hitRoll: () -> Int) = hitRoll()
 fun advantage(hitRoll: () -> Int) = max(hitRoll(), hitRoll())
 fun superAdvantage(hitRoll: () -> Int) = max(hitRoll(), max(hitRoll(), hitRoll()))

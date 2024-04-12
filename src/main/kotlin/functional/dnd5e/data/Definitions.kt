@@ -1,21 +1,16 @@
 package functional.dnd5e.data
 
+import functional.dnd5e.adding
 import functional.dnd5e.modifierScaling
 
 data class DieRoll(val rollNumber:Int, val rollSize:Int)
 
+data class Attack(val naturalRoll: Int, val proficiency: () -> Int, val abilityModifier: () -> Int) {
+    fun rollWithBonuses() = { naturalRoll }.adding(proficiency).adding(abilityModifier)
+}
+
 enum class Feat {
     GREAT_WEAPON_MASTER, SHARPSHOOTER
-}
-
-// TODO add extra mods to apply to attack rolls
-enum class Mod {
-    GWF
-}
-
-// TODO add extra mods to apply to damage rolls
-enum class Flat {
-    DUELING, GWM, SHARPSHOOTER
 }
 
 enum class FightingStyles {

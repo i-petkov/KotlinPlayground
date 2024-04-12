@@ -10,32 +10,38 @@ val weapon = Weapon.GREAT_SWORD
 sealed interface Arms {
     val isEquipped: Boolean
     val isShield: Boolean
+    val isOffhand: Boolean
 
-    fun isLegalFor(fs: FightingStyles): Boolean
+    fun isLegalFor(effect: Effect): Boolean = TODO()
 }
 
 object NotEquipped : Arms {
     override val isEquipped: Boolean = false
     override val isShield: Boolean = false
-    override fun isLegalFor(fs: FightingStyles): Boolean = false
+    override val isOffhand: Boolean = false
+
+    override fun isLegalFor(effect: Effect): Boolean = false
 }
 
-data class AttackArm(val weapon: Weapon = Weapon.UNARMED, val attackingStat: Stat = Stat.STR) : Arms {
+data class AttackArm(val weapon: Weapon = Weapon.UNARMED, val attackingStat: Stat = Stat.STR, override val isOffhand: Boolean = false) : Arms {
     override val isEquipped = false
     override val isShield = false
-    // TODO 'Dual Wielder Feat' can  Dual Wield with weapons that do not have the 'light' property
+    // TODO 'Dual Wielder Feat' can Dual Wield with weapons that do not have the 'light' property
     val canDualWield = weapon != Weapon.UNARMED && weapon.isMele && weapon.isLight
-
-    override fun isLegalFor(fs: FightingStyles): Boolean = when (fs) {
-        FightingStyles.GREAT_WEAPON_FIGHTING -> weapon.isMele && weapon.isTwoHanded
-        FightingStyles.DUELING -> weapon.isMele && weapon.isTwoHanded.not()
+    override fun isLegalFor(effect: Effect): Boolean = when (effect) {
+        DUELING -> weapon.isMele && weapon.isTwoHanded.not() // TODO also requires only one weapon equipped
+        GWF -> weapon.isMele && weapon.isTwoHanded
+        GWM -> weapon.isMele && weapon.isHeavy
+        SHARPSHOOTER -> weapon.isMele.not() && weapon.isHeavy
+        is TwoWeaponFighting -> canDualWield && isOffhand
     }
 }
 
-data class Shield(val attackClass: Int) : Arms {
+data class Shield(val attackClassMod: Int) : Arms { // LIGHT(+1), MED(+2), HEAVY(+3)
     override val isEquipped: Boolean = false
     override val isShield: Boolean = true
-    override fun isLegalFor(fs: FightingStyles): Boolean  = false
+    override val isOffhand: Boolean = true
+    override fun isLegalFor(effect: Effect): Boolean  = false
 }
 
 data class AttackState(
@@ -44,8 +50,8 @@ data class AttackState(
     val feats: HashSet<Feat>,
     val fightingStyles: HashSet<FightingStyles>
 ) {
-    fun isDualWielding() = (mainHand as? AttackArm)?.canDualWield == true &&
-            (offHand as? AttackArm)?.canDualWield == true
+    fun isDualWielding() = ((mainHand as? AttackArm)?.canDualWield == true) &&
+            ((offHand as? AttackArm)?.canDualWield == true)
 }
 
 val attackState = character.attackState()
@@ -56,15 +62,16 @@ fun Character.proficiencyModifier() = proficiencyScaling(level)
 
 fun Character.abilityModifier() = stats.modifier(attackStat)
 
-fun Character.attackRoll(): () -> Int = { roll(20) }
+//fun Character.attackRoll(): () -> Int = { roll(20) }
 
-fun Character.attack(): () -> Int {
-    return attackRoll()
-        .with(::advantage)
-        .adding { proficiencyModifier() }
-        .adding { abilityModifier() }
-}
+//fun Character.attack(): () -> Int {
+//    return attackRoll()
+//        .with(::advantage)
+//        .adding { proficiencyModifier() }
+//        .adding { abilityModifier() }
+//}
 
+// TODO WIP
 fun Character.damageRoll(): () -> Int {
     val attSt = AttackState(
         mainHand = AttackArm(weapon, attackStat),
@@ -110,10 +117,4 @@ fun <R> (() -> R).with(f: (() -> R) -> R): () -> R {
 
 fun (() -> Int).adding(f: () -> Int): () -> Int {
     return { this() + f() }
-}
-
-
-fun AttackState.isApplicable(fs: FightingStyles): Boolean = when (fs) {
-    FightingStyles.GREAT_WEAPON_FIGHTING -> offHand.isEquipped && mainHand.isLegalFor(fs)
-    FightingStyles.DUELING -> offHand.isEquipped && mainHand.isLegalFor(fs)
 }

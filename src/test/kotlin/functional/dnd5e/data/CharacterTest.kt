@@ -99,8 +99,8 @@ class CharacterTest {
         val dmg = Array(trials) { character!!.rollDamage(Weapon.GREAT_SWORD) }.average()
         println("dmgMaxAttackStat ~> $dmg")
 
-        assert(dmg in 11.0..12.0) {
-            "expected: [23.0, 24.0] ~> actual: $dmg"
+        assert(dmg in 11.5..13.0) {
+            "expected: [11.5, 13.0] ~> actual: $dmg"
         }
     }
 

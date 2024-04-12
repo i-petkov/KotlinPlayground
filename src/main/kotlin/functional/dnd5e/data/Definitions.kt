@@ -19,7 +19,7 @@ enum class Flat {
 }
 
 enum class FightingStyles {
-    GREAT_WEAPON_FIGHTING, DUELING
+    GREAT_WEAPON_FIGHTING, DUELING, TWO_WEAPON_FIGHTING
 }
 
 enum class Stat {
